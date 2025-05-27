@@ -1,7 +1,9 @@
 import { Outlet, Link } from '@tanstack/react-router';
 import { Button as MantineButton } from '@mantine/core';
+import { useAuth } from './auth/AuthContext';
 
 function App() {
+  const { isAuthenticated, logout } = useAuth();
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="bg-gray-800 text-white p-4">
@@ -10,9 +12,14 @@ function App() {
             MyApp
           </Link>
           <div className="space-x-4">
-            <MantineButton component={Link} to="/auth/login" variant="light" size="xs">
-              Login
-            </MantineButton>
+            {isAuthenticated ? (
+              <MantineButton onClick={logout} variant="light" size="xs">
+                Logout
+              </MantineButton>) : (
+              <MantineButton component={Link} to="/auth/login" variant="light" size="xs">
+                Login
+              </MantineButton>
+            )}
           </div>
         </div>
       </nav>
