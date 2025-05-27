@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String? // Optional: often provided by OAuth
+  avatarUrl    String? // Optional: often provided by OAuth
+  passwordHash String?     // Optional: for users signing up with email/password
+  role         Role        @default(USER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  magicLinks   MagicLink[]
+  accounts     Account[]   // Relation to social accounts
+
+  // OAuth provider fields
+  provider      String?   // e.g., "google", "github"
+  providerId    String?   // The user's ID from the OAuth provider
+
+  @@unique([provider, providerId]) // Ensure a user can only link a provider once
+}
+
+// New model for social account linking
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String   // e.g., "google", "github"
+  providerAccountId String   // User's ID from the provider
+  accessToken       String?  @db.Text // Store access token if needed (be cautious with security)
+  refreshToken      String?  @db.Text // Store refresh token if needed
+  expiresAt         Int?     // Token expiry timestamp
+  tokenType         String?  // e.g., "Bearer"
+  scope             String?  // Scopes granted by the user
+  idToken           String?  @db.Text // For OIDC providers like Google
+  sessionState      String?  // For some providers
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId]) // Ensure unique combination of provider and account ID
+  @@index([userId])
+}
+
+model WaitlistEntry {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model MagicLink {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
