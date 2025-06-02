@@ -3,6 +3,7 @@ import {
   createRoute,
   Router,
   redirect,
+  type ParsedLocation,
 } from '@tanstack/react-router';
 import authService from './auth/authService';
 
@@ -29,8 +30,8 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: HomePage,
-  beforeLoad: ({ context, location }) => { 
-    if (!context.auth.isAuthenticated()) { 
+  beforeLoad: ({ context, location }) => {
+    if (!context.auth.isAuthenticated()) {
       throw redirect({
         to: '/auth/login',
         search: {
@@ -58,8 +59,8 @@ const authRoute = createRoute({
       magicLink: typeof search.magicLink === 'string' ? search.magicLink : undefined,
     };
   },
-  beforeLoad: ({ context }) => { 
-    if (context.auth.isAuthenticated()) { 
+  beforeLoad: ({ context }) => {
+    if (context.auth.isAuthenticated()) {
       throw redirect({
         to: '/',
       });
