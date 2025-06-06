@@ -3,9 +3,26 @@ import {
   createRoute,
   Router,
   redirect,
-  type ParsedLocation,
 } from '@tanstack/react-router';
-import authService from './auth/authService';
+import authService, { type User } from './auth/authService';
+
+// Define the shape of our router context
+interface AuthContext {
+  auth: {
+    isAuthenticated: () => boolean;
+    getUser: () => User | null;
+    // Add other auth methods you use in your routes
+  };
+}
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+    routeContext: {
+      root: AuthContext;
+    };
+  }
+}
 
 // Define our custom context type - this is good for clarity but won't be directly used in Router generic
 // interface AppRouterContext { 
@@ -23,6 +40,12 @@ import App from './App';
 // Create a root route
 const rootRoute = createRootRoute({
   component: App,
+  beforeLoad: () => ({
+    auth: {
+      isAuthenticated: () => authService.isAuthenticated(),
+      getUser: () => authService.getUser(),
+    },
+  }),
 });
 
 // Create child routes
@@ -126,16 +149,4 @@ export const router = new Router({
   },
 });
 
-// Register your router for maximum type safety
-declare module '@tanstack/react-router' {
-  // Augment the library's RouterContext to include our custom 'auth' property
-  interface RouterContext {
-    auth: typeof authService;
-  }
-
-  // Ensure the Register interface correctly points to our router instance
-  // This makes TanStack Router aware of our specific router's types, including its context.
-  interface Register {
-    router: typeof router;
-  }
-}
+// The router is now properly typed with our context
